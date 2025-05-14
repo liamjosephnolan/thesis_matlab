@@ -153,7 +153,7 @@ pitch_B_aug = [pitch_B;
                0];
 
 % Augmented Q matrix (includes integral of position error)
-pitch_Q_aug = diag([600, 0.15, 60]);  % adjust 100 to tune integrator aggressiveness
+pitch_Q_aug = diag([600, 0.15, .00005]);  % adjust 100 to tune integrator aggressiveness
 pitch_R = 0.0025;    
 
 % Compute LQI gain
@@ -161,7 +161,7 @@ pitch_R = 0.0025;
 
 % Extract Kx and Ki from augmented gain
 pitch_Kx = pitch_K_aug(1, 1:2);  % state feedback gains
-pitch_Ki = pitch_K_aug(1, 3);    % integral gain
+pitch_Ki = -pitch_K_aug(1, 3);    % integral gain
 
 % Display results
 disp('Pitch System LQI Gains:');
