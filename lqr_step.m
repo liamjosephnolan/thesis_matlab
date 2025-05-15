@@ -122,7 +122,7 @@ pitch_u =  pitch_velocity;
 
 % Fit transfer function (2nd-order)
 pitch_data_iddata = iddata(pitch_y, pitch_u, mean(diff(pitch_t)));
-pitch_sys = tfest(pitch_data_iddata, 2);
+pitch_sys = tfest(pitch_data_iddata, 3);
 
 % Compare results
 figure;
