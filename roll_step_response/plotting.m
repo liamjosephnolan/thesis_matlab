@@ -98,7 +98,7 @@ end
 sgtitle('System Identification Comparison (2nd-Order TF)');
 
 %% LQR Design and Closed-Loop Step Response
-default_Q = diag([500, 0.25]);
+default_Q = diag([500, 0.1]);
 default_R = 0.0075;
 t_sim = linspace(0, 10, 1000);
 
@@ -214,3 +214,44 @@ axis equal;
 xlim auto;
 ylim auto;
 hold off;
+
+
+%% Build and Display Tables for A(0,0), A(0,1), Kp, Kd
+
+% Extract unique roll and pitch values
+rollVals = unique([data.roll]);
+pitchVals = unique([data.pitch]);
+
+% Preallocate matrices
+A00_table = NaN(length(pitchVals), length(rollVals));
+A01_table = NaN(length(pitchVals), length(rollVals));
+Kp_table  = NaN(length(pitchVals), length(rollVals));
+Kd_table  = NaN(length(pitchVals), length(rollVals));
+
+% Populate matrices
+for i = 1:numPlots
+    if isfield(data(i), 'A') && isfield(data(i), 'K')
+        % Find indices
+        pitchIdx = find(pitchVals == data(i).pitch);
+        rollIdx  = find(rollVals == data(i).roll);
+
+        % Store values
+        A00_table(pitchIdx, rollIdx) = data(i).A(1,1);
+        A01_table(pitchIdx, rollIdx) = data(i).A(1,2);
+        Kp_table(pitchIdx, rollIdx)  = data(i).K(1);
+        Kd_table(pitchIdx, rollIdx)  = data(i).K(2);
+    end
+end
+
+% Display results as tables
+fprintf('\nA(0,0) Table:\n');
+disp(array2table(A00_table, 'VariableNames', compose('Roll_%d', rollVals), 'RowNames', compose('Pitch_%d', pitchVals)));
+
+fprintf('\nA(0,1) Table:\n');
+disp(array2table(A01_table, 'VariableNames', compose('Roll_%d', rollVals), 'RowNames', compose('Pitch_%d', pitchVals)));
+
+fprintf('\nKp Table:\n');
+disp(array2table(Kp_table, 'VariableNames', compose('Roll_%d', rollVals), 'RowNames', compose('Pitch_%d', pitchVals)));
+
+fprintf('\nKd Table:\n');
+disp(array2table(Kd_table, 'VariableNames', compose('Roll_%d', rollVals), 'RowNames', compose('Pitch_%d', pitchVals)));

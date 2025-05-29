@@ -93,7 +93,7 @@ title('Roll Step Response Comparison');
 
 %% ========== Pitch LQR Calculation ==========
 % Read CSV file with preserved headers
-pitch_data = readtable('PRBS_pitch_v3.csv', 'VariableNamingRule', 'preserve');
+pitch_data = readtable('prbs_pitch_V5.csv', 'VariableNamingRule', 'preserve');
 
 % Extract time and normalize
 pitch_time = pitch_data.time - pitch_data.time(1);

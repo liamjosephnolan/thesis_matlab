@@ -1,0 +1,68 @@
+clear all
+close all
+clc
+% Define file list and labels
+files = {'prbs_roll_0_pitch_0.csv', 'prbs_roll_0_pitch_m15.csv', 'prbs_roll_0_pitch_m20.csv'};
+labels = {'R0_P0', 'R0_P-15', 'R0_P-20'};
+
+% Initialize result storage
+results = table;
+
+for i = 1:length(files)
+    % Load data
+    data = readtable(files{i}, 'VariableNamingRule', 'preserve');
+    
+    % Extract time and normalize
+    t = data{:,1} - data{1,1};  % First column is time
+    
+    % Choose roll data (position is column 10, velocity is column 11)
+    pos = data{:,10};  % Roll position
+    vel = data{:,11};  % Roll velocity
+    
+    % Prepare iddata for system ID
+    sys_data = iddata(pos, vel, mean(diff(t)));
+    
+    % Fit transfer function model
+    sys_tf = tfest(sys_data, 3);
+    
+    % Convert to state-space
+    sys_ss = ss(sys_tf);
+    
+    % Extract matrices
+    A = sys_ss.A;
+    disp(A)
+    B = sys_ss.B;
+    C = sys_ss.C;
+    D = sys_ss.D;
+    
+    % Check controllability
+    if rank(ctrb(A, B)) < size(A, 1)
+        error(['System ', labels{i}, ' is uncontrollable']);
+    end
+    
+    % Define LQR Q and R
+    Q = eye(size(A));
+    R = 1;
+    
+    % Calculate LQR gains (K)
+    [K,~,~] = lqr(A,B,Q,R);
+    
+    % Separate K into Kp, Kd, Ki (if applicable)
+    if size(K,2) == 2  % [position, velocity]
+        Kp = K(1);
+        Kd = K(2);
+        Ki = 0;  % No integral in plain LQR
+    else
+        Kp = K(1);
+        Kd = K(2);
+        Ki = K(3);
+    end
+    
+    % Store results in table
+    results = [results; 
+        table({labels{i}}, Kp, Kd, Ki, {A}, {B}, {C}, {D}, ...
+        'VariableNames', {'Config', 'Kp', 'Kd', 'Ki', 'A', 'B', 'C', 'D'})];
+end
+
+% Display table
+disp(results);
