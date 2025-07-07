@@ -5,7 +5,8 @@ clc;
 % 1 = LQR design only (reuses previously identified systems)
 runMode = 0;
 
-
+% Time trimming parameter (in seconds)
+time_trim = 10; % Set this to your desired trim time
 
 if runMode == 0
     clear all; close all; clc;
@@ -15,9 +16,6 @@ end
 if runMode == 1
     clc;
 end
-
-% Time trimming parameter (in seconds)
-time_trim = 30; % Set this to your desired trim time
 
 %% Define roll and pitch grid values (manually ordered)
 roll_vals = [-20, 0, 20];
@@ -83,7 +81,7 @@ if runMode == 0
 
         % --- System Identification ---
         sys_data = iddata(pos, u, Ts);
-        sys_est = tfest(sys_data, 4,1);
+        sys_est = tfest(sys_data, 3);
         ss_sys = ss(sys_est);
 
         % --- Model Validation ---
