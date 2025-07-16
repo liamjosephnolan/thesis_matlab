@@ -1,0 +1,8 @@
+Joint,Drive Motor,Motor Driver,Positional Sensing
+Roll,Maxon 273752 15V DC motor,MD13S Cytron 13 Amp,Broadcom HEDS-5540 encoder
+Pitch,,,
+Insertion,,,
+Tool Tilt,MG966r,None,Servo feedback
+Tool Pitch,,,
+Tool Roll,,,
+Tool Grasp,,,
