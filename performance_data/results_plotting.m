@@ -1,6 +1,6 @@
 % MATLAB Script for Thesis Plotting
-% Author: Your Name/Gemini
-% Date: July 9, 2025 (CRITICAL FIX: Correct colors for Combined Pitch/Roll Error in non-trajectory data)
+% Author: Liam Nolan
+% Date: July 19, 2025 (Updated for increased font sizes and color correction)
 clear; close all; clc;
 
 %% Configuration
@@ -29,12 +29,11 @@ traj3_x_idx = 2;
 traj3_y_idx = 3;
 traj3_z_idx = 4;
 
-
-% Plotting parameters for thesis quality
+% Plotting parameters for thesis quality - INCREASED FONT SIZES
 lineWidth = 1.5;
-fontSizeTitle = 14;
-fontSizeLabels = 12;
-fontSizeLegend = 10;
+fontSizeTitle = 24;    % Increased from 18
+fontSizeLabels = 22;   % Increased from 16
+fontSizeLegend = 20;   % Increased from 14
 gridAlpha = 0.5;
 gridLineStyle = ':';
 
@@ -42,18 +41,15 @@ gridLineStyle = ':';
 desired_color = 'k'; % Black for Desired/Commanded
 lqr_color = 'r';     % Red for LQR Actual
 p_color = 'b';       % Blue for P-Control / LQI+FF Actual
+p_noff_color = 'r';  % Green for Proportional Control (No Feedforward) in combined error plots
 
 % Line styles for actual positions and errors
 actual_line_style = '--';
 commanded_line_style = '-';
 
-% Line styles and colors for combined error plots in NON-TRAJECTORY data (for differentiation)
-% This will ensure different colors for LQI+FF vs P-Control, and LQR vs P-Control in the basic cases.
-combined_error_line_styles = {'b-', 'r-'}; % Blue for first, Red for second in combined error plots.
-
-
 %% Process Pitch Data (Individual Control Performance)
 disp('--- Processing Pitch Data (Individual Control Performance) ---');
+
 % Initialize figure for combined Pitch Error plot BEFORE the loop
 figure('Name', 'Combined Pitch Joint Error');
 set(gcf, 'WindowState', 'maximized');
@@ -77,16 +73,20 @@ for i = 1:length(pitchFiles)
     joint_error = joint_effort - joint_position; % Commanded - Actual
 
     [~, baseName, ~] = fileparts(fileName);
+
     % Determine case name for legend and plot color for individual plots
     if contains(baseName, 'LQI_FF', 'IgnoreCase', true)
         caseName = 'Pitch with LQI and Feedforward control';
         actual_plot_color_individual = p_color; % Still blue for individual plot
+        plot_color_combined_error = p_color; % Blue for LQI+FF in combined error
     elseif contains(baseName, 'P_NOFF', 'IgnoreCase', true) || contains(baseName, 'P', 'IgnoreCase', true)
         caseName = 'Pitch with Proportional control';
         actual_plot_color_individual = p_color; % Still blue for individual plot
+        plot_color_combined_error = p_noff_color; % Green for P-Control (non-FF) in combined error
     else
         caseName = strrep(baseName, '_', ' '); 
-        actual_plot_color_individual = 'g'; % Default if unexpected
+        actual_plot_color_individual = 'k'; % Default if unexpected
+        plot_color_combined_error = 'k'; % Default if unexpected
     end
 
     %% Plot 1: JOINT Velocity vs Time (Pitch) - Individual Plot
@@ -98,7 +98,7 @@ for i = 1:length(pitchFiles)
     title(['Pitch Joint Motor Speed vs Time (', caseName, ')'], 'FontSize', fontSizeTitle);
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
     ylabel('PWM Value', 'FontSize', fontSizeLabels);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp(['Displayed plot: ', baseName, ' - Joint Velocity']);
 
     %% Plot 2: JOINT Commanded and Actual Position vs Time (Pitch) - Individual Plot
@@ -114,13 +114,13 @@ for i = 1:length(pitchFiles)
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
     ylabel('Position (degrees)', 'FontSize', fontSizeLabels);
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp(['Displayed plot: ', baseName, ' - Joint Commanded & Actual Position']);
 
     %% Plot 3: JOINT Error vs Time (Pitch) - Combined Plot
     figure(findobj('Name', 'Combined Pitch Joint Error'));
-    % Use combined_error_line_styles for differentiation in this specific plot
-    plot(time, joint_error, combined_error_line_styles{mod(i-1, length(combined_error_line_styles)) + 1}, 'LineWidth', lineWidth);
+    % Use plot_color_combined_error for differentiation in this specific plot
+    plot(time, joint_error, plot_color_combined_error, 'LineWidth', lineWidth);
     pitchErrorLegends{end+1} = [caseName ' Error'];
     disp(['Added data to combined Pitch Error plot: ', baseName]);
     disp(' ');
@@ -135,11 +135,11 @@ title('Pitch Joint Error (Commanded - Actual) vs Time', 'FontSize', fontSizeTitl
 xlabel('Time (s)', 'FontSize', fontSizeLabels);
 ylabel('Joint Error (degrees)', 'FontSize', fontSizeLabels);
 legend(pitchErrorLegends, 'Location', 'best', 'FontSize', fontSizeLegend);
-set(gca, 'FontSize', fontSizeLabels);
+set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
 disp('Displayed combined plot: Combined Pitch Joint Error');
 
-
 disp('--- Processing Roll Data (Individual Control Performance) ---');
+
 % Initialize figure for combined Roll Error plot BEFORE the loop
 figure('Name', 'Combined Roll Joint Error');
 set(gcf, 'WindowState', 'maximized');
@@ -163,16 +163,20 @@ for i = 1:length(rollFiles)
     joint_error = joint_effort - joint_position; % Commanded - Actual
 
     [~, baseName, ~] = fileparts(fileName);
+
     % Determine case name for legend and plot color for individual plots
     if contains(baseName, 'LQR', 'IgnoreCase', true)
         caseName = 'Roll with LQR control';
         actual_plot_color_individual = lqr_color; % Red for individual LQR plot
+        plot_color_combined_error = lqr_color; % Red for LQR in combined error
     elseif contains(baseName, 'P', 'IgnoreCase', true)
         caseName = 'Roll with Proportional control';
         actual_plot_color_individual = p_color; % Blue for individual P-Control plot
+        plot_color_combined_error = p_color; % Blue for P-Control in combined error
     else
         caseName = strrep(baseName, '_', ' '); 
-        actual_plot_color_individual = 'g'; % Default if unexpected
+        actual_plot_color_individual = 'k'; % Default if unexpected
+        plot_color_combined_error = 'k'; % Default if unexpected
     end
 
     %% Plot 1: JOINT Velocity vs Time (Roll) - Individual Plot
@@ -184,7 +188,7 @@ for i = 1:length(rollFiles)
     title(['Roll Joint Motor Speed vs Time (', caseName, ')'], 'FontSize', fontSizeTitle);
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
     ylabel('PWM Value', 'FontSize', fontSizeLabels);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp(['Displayed plot: ', baseName, ' - Joint Velocity']);
 
     %% Plot 2: JOINT Commanded and Actual Position vs Time (Roll) - Individual Plot
@@ -200,13 +204,13 @@ for i = 1:length(rollFiles)
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
     ylabel('Position (degrees)', 'FontSize', fontSizeLabels);
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp(['Displayed plot: ', baseName, ' - Joint Commanded & Actual Position']);
 
     %% Plot 3: JOINT Error vs Time (Roll) - Combined Plot
     figure(findobj('Name', 'Combined Roll Joint Error'));
-    % Use combined_error_line_styles for differentiation in this specific plot
-    plot(time, joint_error, combined_error_line_styles{mod(i-1, length(combined_error_line_styles)) + 1}, 'LineWidth', lineWidth);
+    % Use plot_color_combined_error for differentiation in this specific plot
+    plot(time, joint_error, plot_color_combined_error, 'LineWidth', lineWidth);
     rollErrorLegends{end+1} = [caseName ' Error'];
     disp(['Added data to combined Roll Error plot: ', baseName]);
     disp(' ');
@@ -221,7 +225,7 @@ title('Roll Joint Error (Commanded - Actual) vs Time', 'FontSize', fontSizeTitle
 xlabel('Time (s)', 'FontSize', fontSizeLabels);
 ylabel('Joint Error (degrees)', 'FontSize', fontSizeLabels);
 legend(rollErrorLegends, 'Location', 'best', 'FontSize', fontSizeLegend);
-set(gca, 'FontSize', fontSizeLabels);
+set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
 disp('Displayed combined plot: Combined Roll Joint Error');
 
 disp('--- Processing Trajectory Data (Main Focus for Comparisons) ---');
@@ -240,11 +244,12 @@ try
     plot3(desired_x, desired_y, desired_z, desired_color, 'LineWidth', lineWidth, 'DisplayName', 'Desired Trajectory Path');
     grid on;
     set(gca, 'GridAlpha', gridAlpha, 'GridLineStyle', gridLineStyle);
-    title('Desired 3D Trajectory Path (from traj_3.csv)', 'FontSize', fontSizeTitle);
-    xlabel('X Position', 'FontSize', fontSizeLabels);
-    ylabel('Y Position', 'FontSize', fontSizeLabels);
-    zlabel('Z Position', 'FontSize', fontSizeLabels);
+    title('Desired 3D Trajectory Path', 'FontSize', fontSizeTitle); % Simplified title
+    xlabel('X Position (meters)', 'FontSize', fontSizeLabels); % Added (meters)
+    ylabel('Y Position (meters)', 'FontSize', fontSizeLabels); % Added (meters)
+    zlabel('Z Position (meters)', 'FontSize', fontSizeLabels); % Added (meters)
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     view(3); % Standard 3D view
     axis tight;
     disp('Displayed the single Desired 3D Trajectory Path plot.');
@@ -254,7 +259,6 @@ end
 
 % --- Process p_traj_follow.csv and lqr_traj_follow.csv for comparisons ---
 trajData = struct(); % Initialize struct to store data
-
 for i = 1:length(trajFollowFiles)
     fileName = trajFollowFiles{i};
     disp(['Loading file: ', fileName]);
@@ -291,13 +295,11 @@ for i = 1:length(trajFollowFiles)
     trajData.(key).pitch_effort = pitch_effort;
     trajData.(key).pitch_position = pitch_position;
     trajData.(key).caseName = caseName; 
-
     disp(['Loaded trajectory data: ', caseName]);
 end
 
 % --- Generate comparison plots for Trajectory Following Data ---
 if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were loaded
-
     disp('Generating Trajectory Follow Comparison Plots...');
     
     %% Individual Commanded & Actual Position vs Time Plots for Trajectory Following
@@ -324,7 +326,7 @@ if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were l
         xlabel('Time (s)', 'FontSize', fontSizeLabels);
         ylabel('Position (degrees)', 'FontSize', fontSizeLabels);
         legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-        set(gca, 'FontSize', fontSizeLabels);
+        set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
         disp(['Displayed 2D plot: ', currentKey, ' Roll Commanded & Actual Position vs Time']);
 
         % Plot: Pitch Commanded and Actual Position vs Time
@@ -340,17 +342,15 @@ if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were l
         xlabel('Time (s)', 'FontSize', fontSizeLabels);
         ylabel('Position (degrees)', 'FontSize', fontSizeLabels);
         legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-        set(gca, 'FontSize', fontSizeLabels);
+        set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
         disp(['Displayed 2D plot: ', currentKey, ' Pitch Commanded & Actual Position vs Time']);
     end
-
 
     %% Combined Error Plots for Trajectory Follow Data
     
     % Calculate errors
     roll_error_p = trajData.P.roll_effort - trajData.P.roll_position; 
     pitch_error_p = trajData.P.pitch_effort - trajData.P.pitch_position; 
-
     roll_error_lqr = trajData.LQR.roll_effort - trajData.LQR.roll_position; 
     pitch_error_lqr = trajData.LQR.pitch_effort - trajData.LQR.pitch_position; 
 
@@ -365,9 +365,9 @@ if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were l
     set(gca, 'GridAlpha', gridAlpha, 'GridLineStyle', gridLineStyle);
     title('Roll Joint Error (Commanded - Actual) vs Time: P vs LQR Trajectory Following', 'FontSize', fontSizeTitle);
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
-    ylabel('Error (Commanded - Actual) (PWM Value - degrees)', 'FontSize', fontSizeLabels);
+    ylabel('Error (Commanded - Actual) (degrees)', 'FontSize', fontSizeLabels); % Corrected Y-label
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp('Displayed combined plot: Trajectory Follow Roll Error');
 
     % Plot Combined Trajectory Follow Pitch Error
@@ -381,15 +381,13 @@ if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were l
     set(gca, 'GridAlpha', gridAlpha, 'GridLineStyle', gridLineStyle);
     title('Pitch Joint Error (Commanded - Actual) vs Time: P vs LQR Trajectory Following', 'FontSize', fontSizeTitle);
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
-    ylabel('Error (Commanded - Actual) (PWM Value - degrees)', 'FontSize', fontSizeLabels);
+    ylabel('Error (Commanded - Actual) (degrees)', 'FontSize', fontSizeLabels); % Corrected Y-label
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp('Displayed combined plot: Trajectory Follow Pitch Error');
-
 
     %% Combined Commanded & Actual Position vs Time Plots (Trajectory Following)
     % Only one "Commanded Position" line is plotted for both.
-
     % Roll Combined Commanded & Actual
     disp('--- Generating Trajectory Following Roll Control Methods Time Response Comparison ---');
     figure('Name', 'Trajectory Following Roll Control Methods Time Response Comparison');
@@ -409,9 +407,8 @@ if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were l
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
     ylabel('Position (degrees)', 'FontSize', fontSizeLabels);
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp('Displayed plot: Trajectory Following Roll Control Methods Time Response Comparison');
-
 
     % Pitch Combined Commanded & Actual
     disp('--- Generating Trajectory Following Pitch Control Methods Time Response Comparison ---');
@@ -432,9 +429,8 @@ if isfield(trajData, 'P') && isfield(trajData, 'LQR') % Ensure both files were l
     xlabel('Time (s)', 'FontSize', fontSizeLabels);
     ylabel('Position (degrees)', 'FontSize', fontSizeLabels);
     legend('show', 'Location', 'best', 'FontSize', fontSizeLegend);
-    set(gca, 'FontSize', fontSizeLabels);
+    set(gca, 'FontSize', fontSizeLabels); % Apply font size to axis ticks
     disp('Displayed plot: Trajectory Following Pitch Control Methods Time Response Comparison');
-
 else
     warning('Skipping Trajectory Follow comparison plots as "p_traj_follow.csv" or "lqr_traj_follow.csv" data could not be fully loaded.');
 end
