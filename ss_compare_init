@@ -1,0 +1,14 @@
+%% Matrice Comparsion Script
+% Comparison script for sanity checking the state space matrices from Liam
+% Nolans incredible thesis. Matrices were estimated from a roll step
+% response at 0,0 using 2nd order transfer fucntion
+
+% The estimated state space matrices from ssest() matlab documentation
+% states this is numerically optimized state space matrix format
+
+A_no = [-6.1202 -4.0720; 4.000 0];
+B_no = [2;0];
+C_no = [2.0213 -1.0414];
+D_no = [0];
+
+% Convert to cannocial format

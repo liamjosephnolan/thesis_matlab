@@ -83,7 +83,7 @@ if runMode == 0
 
         % --- System Identification ---
         sys_data = iddata(pos, u, Ts);
-        sys_est = tfest(sys_data, 4,1);
+        sys_est = tfest(sys_data, 2,1);
         ss_sys = ss(sys_est);
 
         % --- Model Validation ---
